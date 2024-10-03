@@ -1,0 +1,2 @@
+class Grille(object):
+    pass
