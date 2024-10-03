@@ -32,8 +32,17 @@ class Case(object):
         
         
         
-    def marquer(self,case):
-        case.marquee = not(case.marquee)
-    
+    # def marquer(self,case):
+    #     case.marquee = not(case.marquee)
+
+
     def __str__(self):
-        return f'Case(x = {self.x}, y = {self.y}, mine = {self.mine}, devoilee = {self.devoilee}, marquee = {self.marquee}, minesAdjacentes = {self.minesAdjacentes}'
+        """
+        Retourne une représentation de la case selon son état.
+        """
+        if self.devoilee:
+            return 'D'  # Case dévoilée
+        elif self.marquee:
+            return 'M'  # Case marquée
+        else:
+            return '■'  # Case ni dévoilée ni marquée
