@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Case(object):
     def __init__(self, y, x, mine, devoilee, marquee, minesAdjacentes=0):
         """

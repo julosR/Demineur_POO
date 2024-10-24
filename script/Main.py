@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from Case import Case
 from Grille import Grille
 # from Timer import Timer
