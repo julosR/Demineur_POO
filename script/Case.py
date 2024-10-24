@@ -59,9 +59,12 @@ class Case(object):
         Retourne une représentation de la case selon son état.
         """
         if self.devoilee:
-            return str(self.minesAdjacentes)  # Case dévoilée
+            if self.minesAdjacentes >0:
+                return str(self.minesAdjacentes)  # Case dévoilée
+            if self.minesAdjacentes ==0:
+                return " "
         elif self.marquee:
-            return 'M'  # Case marquée
+            return "🚩"  # Case marquée
         else:
             return '■'  # Case ni dévoilée ni marquée
 

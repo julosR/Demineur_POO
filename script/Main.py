@@ -9,5 +9,5 @@ if __name__ == '__main__':
     grille = Grille(difficulte = "intermediaire")
 
     
-    grille.devoiler(5, 3)
+    grille.devoiler(8, 3)
     grille.afficherGrille()
