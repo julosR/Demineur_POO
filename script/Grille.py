@@ -5,11 +5,24 @@ from Case import Case
 DIFFICULTE = {
     "facile": {"taille_grille": (9, 9), "nb_bombes": 10, "taille_zone_safe": (2, 4)},
     "intermediaire": {"taille_grille": (16, 16), "nb_bombes": 40, "taille_zone_safe": (5, 10)},
-    "avance": {"taille_grille": (30, 16), "nb_bombes": 75, "taille_zone_safe": (10, 20)},
+    "avance": {"taille_grille": (30, 16), "nb_bombes": 99, "taille_zone_safe": (10, 20)},
 }
 
 class Grille(object):
     def __init__(self, difficulte="facile"):
+        """
+        Initialise la grille de jeu avec la difficulté spécifiée.
+
+        Parameters
+        ----------
+        difficulte : str
+            Le niveau de difficulté pour la grille (facile, intermediaire, avance).
+        
+        Raises
+        ------
+        ValueError
+            Si la difficulté spécifiée n'est pas reconnue.
+        """
         if difficulte in DIFFICULTE:
             config = DIFFICULTE[difficulte]
             self.largeur, self.longueur = config["taille_grille"]
@@ -25,7 +38,11 @@ class Grille(object):
         self.drapeaux_restants = self.nb_bombes  # Compteur de drapeaux posés
 
     def initialiserGrille(self):
-        # Crée une grille remplie de cases
+        """
+        Crée une grille remplie de cases.
+
+        Initialise la grille en créant des instances de la classe Case pour chaque position.
+        """
         self.grille = [
             [Case(x=x, y=y, mine=False, devoilee=False, marquee=False, minesAdjacentes=0)
              for x in range(self.largeur)]
@@ -43,6 +60,11 @@ class Grille(object):
             Position x de la case initiale.
         y_initial : int
             Position y de la case initiale.
+
+        Returns
+        -------
+        set
+            Un ensemble de coordonnées représentant la zone sûre créée.
         """
         zone_safe = set()
         zone_safe.add((x_initial, y_initial))
@@ -107,6 +129,16 @@ class Grille(object):
         self.bombes_initialisees = True
 
     def marquer(self, x, y):
+        """
+        Marque ou démarge une case à la position spécifiée.
+
+        Parameters
+        ----------
+        x : int
+            Position x de la case à marquer.
+        y : int
+            Position y de la case à marquer.
+        """
         if 0 <= x < self.largeur and 0 <= y < self.longueur:
             case = self.grille[y][x]
             if not case.devoilee:
@@ -119,6 +151,21 @@ class Grille(object):
             print("Coordonnées hors limites !")
 
     def devoiler(self, x, y):
+        """
+        Dévoile une case à la position spécifiée et gère le placement des bombes.
+
+        Parameters
+        ----------
+        x : int
+            Position x de la case à dévoiler.
+        y : int
+            Position y de la case à dévoiler.
+
+        Returns
+        -------
+        bool
+            True si le joueur a gagné après avoir dévoilé la case, sinon False.
+        """
         if (0 <= x < self.largeur and 0 <= y < self.longueur):
             case = self.grille[y][x]
             
@@ -126,7 +173,7 @@ class Grille(object):
             if not self.bombes_initialisees:
                 # Placer les bombes après la création de la zone sûre
                 self.placerBombes(x, y)
-                self.devoilee = True
+                case.devoilee = True
                 self.devoilerCasesAdjacentes(x, y)
             else:
                 if not case.devoilee and not case.marquee:
@@ -181,9 +228,6 @@ class Grille(object):
                             if (nx, ny) not in deja_devoilees:
                                 cases_a_devoiler.append((nx, ny))
 
-
-
-
     def verifier_gagne(self):
         """
         Vérifie si le joueur a gagné.
@@ -202,5 +246,10 @@ class Grille(object):
         return True  # Toutes les cases non-bombes sont dévoilées
 
     def afficherGrille(self):
+        """
+        Affiche la grille dans la console.
+        
+        Affiche chaque ligne de la grille en format lisible.
+        """
         for ligne in self.grille:
             print(" | ".join([str(case) for case in ligne]))
