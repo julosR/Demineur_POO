@@ -18,14 +18,6 @@ BANNER_HEIGHT = 120  # Hauteur du bandeau
 
 class JeuDemineur:
     def __init__(self, difficulte="avance"):
-        """
-        Initialise une nouvelle partie du démineur avec la difficulté spécifiée.
-        
-        Paramètres
-        ----------
-        difficulte : str
-            La difficulté du jeu, qui peut être "facile", "intermediaire" ou "avance".
-        """
         pygame.init()
         self.difficulties = list(DIFFICULTY_SETTINGS.keys())
         self.selected_difficulty = self.difficulties.index(difficulte)
@@ -40,15 +32,15 @@ class JeuDemineur:
         
         # Initialiser les couleurs
         self.colors = {
-            "unrevealed": (50, 50, 50),  # Gris foncé
-            "revealed_safe": (200, 200, 200),  # Gris clair
-            "revealed_mine": (255, 0, 0),  # Rouge
-            "marked": (255, 215, 0),  # Or
+            "unrevealed": (50, 50, 50),  # Dark gray
+            "revealed_safe": (200, 200, 200),  # Light gray
+            "revealed_mine": (255, 0, 0),  # Red
+            "marked": (255, 215, 0),  # Gold
             "black": (0, 0, 0),
-            "banner_bg": (70, 70, 70),  # Fond du bandeau
-            "button_bg": (150, 150, 150),  # Fond des boutons
-            "button_hover": (180, 180, 180),  # Fond des boutons au survol
-            "text_color": (255, 255, 255)  # Texte blanc
+            "banner_bg": (70, 70, 70),  # Dark banner background
+            "button_bg": (150, 150, 150),  # Button background
+            "button_hover": (180, 180, 180),  # Button hover background
+            "text_color": (255, 255, 255)  # White text
         }
         
         self.font = pygame.font.SysFont("Helvetica", 24)
@@ -73,11 +65,6 @@ class JeuDemineur:
         self.main_loop()
 
     def draw_board(self):
-        """
-        Dessine la grille de jeu sur l'écran.
-        
-        Affiche les cases, le bandeau et les boutons sur la fenêtre.
-        """
         # Dessiner le fond de l'écran
         self.screen.fill((255, 255, 255))  # Remplir l'écran de blanc
     
@@ -112,11 +99,6 @@ class JeuDemineur:
                 pygame.draw.rect(self.screen, self.colors["black"], rect, 1)
 
     def draw_banner(self):
-        """
-        Dessine le bandeau en haut de l'écran.
-        
-        Affiche les boutons et les informations de jeu telles que le mode de jeu et le nombre de drapeaux restants.
-        """
         # Dessiner le bandeau
         pygame.draw.rect(self.screen, self.colors["banner_bg"], (0, 0, self.largeur * CASE_SIZE, BANNER_HEIGHT))
         
@@ -132,11 +114,6 @@ class JeuDemineur:
         self.screen.blit(flags_text, (10, 80))  # Position du texte du nombre de drapeaux
 
     def draw_buttons(self):
-        """
-        Dessine les boutons sur le bandeau.
-        
-        Affiche les boutons de réinitialisation et de changement de difficulté.
-        """
         # Dessiner les boutons
         pygame.draw.rect(self.screen, self.colors["button_bg"], self.reset_button_rect)
         reset_text = self.font.render("Reinitialiser", True, self.colors["text_color"])
@@ -147,16 +124,6 @@ class JeuDemineur:
         self.screen.blit(change_difficulty_text, (self.change_difficulty_button_rect.x + 10, self.change_difficulty_button_rect.y + 5))
 
     def handle_left_click(self, pos):
-        """
-        Gère le clic gauche de la souris.
-        
-        Vérifie si le clic est sur un bouton ou sur une case de la grille, et effectue l'action appropriée.
-        
-        Paramètres
-        ----------
-        pos : tuple
-            La position du clic sous forme de tuple (x, y).
-        """
         x, y = pos
         if y < BANNER_HEIGHT:  # Vérifier si le clic est dans la zone des boutons
             if self.reset_button_rect.collidepoint(pos):
@@ -172,16 +139,6 @@ class JeuDemineur:
                 self.clic_gauche(x, y)
 
     def handle_right_click(self, pos):
-        """
-        Gère le clic droit de la souris.
-        
-        Marque ou démarque une case en fonction de la position du clic.
-        
-        Paramètres
-        ----------
-        pos : tuple
-            La position du clic sous forme de tuple (x, y).
-        """
         x, y = pos
         x //= CASE_SIZE
         y = (y - BANNER_HEIGHT) // CASE_SIZE  # Soustraire la hauteur du bandeau
@@ -190,87 +147,112 @@ class JeuDemineur:
             self.clic_droit(x, y)
 
     def clic_gauche(self, x, y):
-        """
-        Traite le clic gauche sur une case.
-        
-        Dévoile la case, révèle toutes les mines si c'est une mine, et vérifie si le joueur a gagné.
-        
-        Paramètres
-        ----------
-        x : int
-            La position x de la case cliquée.
-        y : int
-            La position y de la case cliquée.
-        """
         if self.grille.grille[y][x].marquee:
             return
-        self.grille.devoiler_case(x, y)
+        self.grille.devoiler(x, y)
         
         if self.grille.grille[y][x].mine:
-            self.game_active = False
-            self.grille.reveler_mines()  # Révéler toutes les mines
-        elif self.grille.est_gagne():
-            self.game_active = False  # Joueur a gagné
-            self.grille.reveler_mines()
+            self.reveal_all_mines()
+            self.game_over()
+        elif self.grille.verifier_gagne():  # Vérifier si le joueur a gagné
+            self.reveal_all_mines(victory=True)  # Révéler toutes les mines avec le flag de victoire
+        self.draw_board()  # Redessiner la grille après un clic
 
     def clic_droit(self, x, y):
-        """
-        Traite le clic droit sur une case.
+        self.grille.marquer(x, y)
+        self.flags_remaining = self.grille.drapeaux_restants
+        self.draw_board()  # Redessiner après avoir marqué/démarquée
+
+    def reveal_all_mines(self, victory=False):
+        # Révéler toutes les mines
+        for y in range(self.grille.longueur):
+            for x in range(self.grille.largeur):
+                if self.grille.grille[y][x].mine:
+                    self.grille.grille[y][x].devoilee = True  # Révéler la mine
         
-        Marque ou démarque une case avec un drapeau.
+        # Redessiner la grille pour afficher les mines
+        self.draw_board()
+        pygame.display.flip()  # Mettre à jour l'affichage avant d'afficher le pop-up
+    
+        # Afficher le message de fin de partie
+        if victory:
+            self.show_popup("Félicitations", "Vous avez gagné !")  # Afficher le pop-up de victoire
+        else:
+            self.show_popup("Fin de Partie", "Vous avez perdu !")
         
-        Paramètres
-        ----------
-        x : int
-            La position x de la case cliquée.
-        y : int
-            La position y de la case cliquée.
-        """
-        case = self.grille.grille[y][x]
-        if not case.devoilee:
-            case.marquee = not case.marquee
-            self.flags_remaining += -1 if case.marquee else 1
+        # Désactiver le jeu pour empêcher toute autre interaction
+        self.game_active = False
+
+
+    def game_over(self):
+        self.game_active = False  # Désactiver les clics sur la grille
+        self.show_popup("Fin de Partie", "Vous avez perdu !")  # Afficher un pop-up à la fin de la partie
+
+    def show_popup(self, title, message):
+        # Créer une nouvelle fenêtre pour le pop-up
+        popup_surface = pygame.Surface((400, 200))
+        popup_surface.fill((200, 200, 200))
+        pygame.draw.rect(popup_surface, (0, 0, 0), (0, 0, 400, 200), 2)
+
+        title_text = self.font.render(title, True, (0, 0, 0))
+        message_text = self.font.render(message, True, (0, 0, 0))
+        popup_surface.blit(title_text, (50, 20))
+        popup_surface.blit(message_text, (50, 80))
+
+        self.screen.blit(popup_surface, (self.largeur * CASE_SIZE // 2 - 200, self.longueur * CASE_SIZE // 2 - 100))
+        pygame.display.flip()
+
+        # Attendre que l'utilisateur clique pour fermer le pop-up
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == MOUSEBUTTONDOWN:
+                    waiting = False
 
     def reset(self):
-        """
-        Réinitialise le jeu en créant une nouvelle grille avec la difficulté actuelle.
-        """
-        self.grille = Grille(self.difficulties[self.selected_difficulty])
-        self.flags_remaining = self.grille.drapeaux_restants
-        self.game_active = True
+        self.grille = Grille(self.difficulties[self.selected_difficulty])  # Réinitialiser la grille
+        self.flags_remaining = self.grille.drapeaux_restants  # Réinitialiser le nombre de drapeaux
+        self.game_active = True  # Réactiver le jeu
 
     def changer_difficulte(self):
-        """
-        Change la difficulté du jeu.
-        
-        Passe à la prochaine difficulté dans la liste définie.
-        """
         self.selected_difficulty = (self.selected_difficulty + 1) % len(self.difficulties)
+        self.largeur, self.longueur = DIFFICULTY_SETTINGS[self.difficulties[self.selected_difficulty]]
+        self.grille = Grille(self.difficulties[self.selected_difficulty])  # Réinitialiser la grille
+        self.flags_remaining = self.grille.drapeaux_restants  # Réinitialiser le nombre de drapeaux
+        self.draw_board()  # Redessiner la grille
 
     def main_loop(self):
-        """
-        Boucle principale du jeu.
-        
-        Gère les événements et dessine l'état du jeu à chaque itération.
-        """
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event.type == MOUSEBUTTONDOWN:
+                    # Toujours vérifier les clics sur les boutons
                     if event.button == 1:  # Clic gauche
-                        self.handle_left_click(event.pos)
+                        if self.reset_button_rect.collidepoint(event.pos):
+                            self.reset()
+                        elif self.change_difficulty_button_rect.collidepoint(event.pos):
+                            self.changer_difficulte()
+                            self.reset()
+                        else:
+                            if self.game_active:
+                                self.handle_left_click(event.pos)
                     elif event.button == 3:  # Clic droit
-                        self.handle_right_click(event.pos)
-
+                        if self.game_active:
+                            self.handle_right_click(event.pos)
+    
+            # Redessiner la grille seulement si le jeu est actif
             if self.game_active:
-                self.draw_board()
-            else:
-                self.draw_board()  # Redessiner une dernière fois pour montrer la grille révélée
-                pygame.display.update()  # Mettre à jour l'affichage
-            
-            pygame.display.update()
+                self.draw_board()  # Redessiner la grille si le jeu est actif
+    
+            # Toujours redessiner le bandeau, y compris les boutons
+            self.draw_board()  # Cela inclut le bandeau, donc pas besoin de l'appeler à chaque fois
+    
+            pygame.display.flip()
 
 if __name__ == "__main__":
     JeuDemineur()
