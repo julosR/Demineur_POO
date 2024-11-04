@@ -12,6 +12,8 @@ DIFFICULTY_SETTINGS = {
     "avance": (30, 16)       # 30x16
 }
 
+
+
 # Dimensions de la case
 CASE_SIZE = 40
 BANNER_HEIGHT = 120  # Hauteur du bandeau
@@ -41,6 +43,17 @@ class JeuDemineur:
             "button_bg": (150, 150, 150),  # Button background
             "button_hover": (180, 180, 180),  # Button hover background
             "text_color": (255, 255, 255)  # White text
+        }
+        # Couleurs pour les chiffres des mines adjacentes
+        self.adjacent_colors = {
+            1: (0, 0, 255),       # 1 - Bleu
+            2: (0, 128, 0),       # 2 - Vert
+            3: (255, 0, 0),       # 3 - Rouge
+            4: (0, 0, 128),       # 4 - Bleu foncé
+            5: (128, 0, 0),       # 5 - Marron
+            6: (64, 224, 208),    # 6 - Turquoise
+            7: (0, 0, 0),         # 7 - Noir
+            8: (128, 128, 128)    # 8 - Gris
         }
         
         self.font = pygame.font.SysFont("Helvetica", 24)
@@ -86,7 +99,8 @@ class JeuDemineur:
                         self.screen.blit(self.mine_image, (x * CASE_SIZE + 5, y * CASE_SIZE + BANNER_HEIGHT + 5))
                     elif case.minesAdjacentes > 0:
                         # Afficher le nombre de mines adjacentes si non-mine
-                        text = self.font.render(str(case.minesAdjacentes), True, self.colors["black"])
+                        text_color = self.adjacent_colors.get(case.minesAdjacentes, self.colors["black"])
+                        text = self.font.render(str(case.minesAdjacentes), True, text_color)
                         self.screen.blit(text, (x * CASE_SIZE + 10, y * CASE_SIZE + BANNER_HEIGHT + 5))
                 elif case.marquee:
                     # Dessiner une case non dévoilée avec le drapeau
